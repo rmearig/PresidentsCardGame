@@ -43,7 +43,9 @@ namespace Presidents.Game_Pieces
         public void PlayGame(int numOfDecks)
         {
             int round = 1;
-            
+            string played = string.Empty;
+
+
             var playAgain = true;
 
             while (playAgain)
@@ -87,6 +89,11 @@ namespace Presidents.Game_Pieces
                 
                 while (Players.Any(p => p.FuturePosition == 0))
                 {
+                    if (!string.IsNullOrEmpty(played))
+                    {
+                        Console.WriteLine($"This round's plays:\n{played}");
+                        Console.WriteLine($"There are {Players.Where(p => p.HasPlayed == false).ToList().Count-1} players left after you.\n");
+                    }
                     i = i > Players.Count ? 1 : i;
                     var currentPlayer = Players[i - 1];
                     if (currentPlayer.FuturePosition == 0 && currentPlayer.DealtCards.Count == 0)
@@ -124,6 +131,14 @@ namespace Presidents.Game_Pieces
                         i++;
                     }
 
+                    string currentPlay = string.Empty;
+                    if (currentTurn.Result == TurnResult.Skip)
+                    {
+                        currentPlay = "has skipped.";
+                    }
+                    else currentPlay = $"played {currentTurn.Card.Count} - {currentTurn.Card[0].Value}";
+                    played += $"{currentPlayer.Name} {currentPlay}\n";
+
 
                     if (Players.All(p => p.HasPlayed == true))
                     {
@@ -133,6 +148,7 @@ namespace Presidents.Game_Pieces
                         }
                         i = w;
                         currentTurn.Card = null;
+                        played = string.Empty;
                     }
                 }
 

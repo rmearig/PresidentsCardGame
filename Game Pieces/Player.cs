@@ -181,6 +181,7 @@ namespace Presidents.Game_Pieces
         {
             PlayerTurn turn = new PlayerTurn();
             turn.Card = previousDiscard;
+            turn.Result = TurnResult.Skip;
             Console.Clear();
             Console.WriteLine("You chose to skip, next persons turn.");
 
