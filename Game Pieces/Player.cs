@@ -47,40 +47,43 @@ namespace Presidents.Game_Pieces
         public PlayerTurn Turn(List<List<Card>> currentHand, List<Card> currentDiscard)
         {
             PlayerTurn turn = new PlayerTurn();
-            string lastCardMessage = currentDiscard == null ? "You start it off.\n" : $"This is the last card(s) played: \n{currentDiscard.Count} - {currentDiscard[0].Value}\n";
+            string plurals = currentDiscard != null ? currentDiscard.Count > 1 ? currentDiscard[0].Value == CardValue.Six ? "es" : "s" : string.Empty : string.Empty;
+            string lastCardMessage = currentDiscard == null ? "You start it off.\n" : $"This is the last card(s) played: \n{currentDiscard.Count} - {currentDiscard[0].Value}{plurals}\n";
             Console.WriteLine(lastCardMessage);
             
             Console.WriteLine("And this is your hand: (press Enter to view hand)");
             Console.ReadKey();
             foreach (var cardList in currentHand)
             {
-                string plural = cardList.Count > 1 ? "s" : string.Empty;
+                string plural = cardList.Count > 1 ? cardList[0].Value == CardValue.Six ? "es" : "s" : string.Empty;
                 Console.WriteLine($"{cardList.Count} - {cardList[0].Value}{plural}");
             }
 
-            if (currentDiscard == null)
-            {
-                turn = Play(currentHand, currentDiscard);
-            }
-            else
-            {
-                Console.WriteLine("Would you like to (1) Play or (2) Skip?");
-                int choice;
-                bool validChoice = int.TryParse(Console.ReadLine(), out choice);
-                while (!validChoice || (choice < 1 || choice > 2))
-                {
-                    Console.WriteLine("Please enter a valid option.");
-                    validChoice = int.TryParse(Console.ReadLine(), out choice);
-                }
-                turn.Result = choice == 1 ? TurnResult.Play : TurnResult.Skip;
-                if (turn.Result == TurnResult.Play && HasPlayableCard(currentHand, currentDiscard)) { turn = Play(currentHand, currentDiscard); }
-                else
-                {
-                    if (!HasPlayableCard(currentHand, currentDiscard) && choice == 1)
-                        Console.WriteLine("You don't have a playable card, you must skip.");
-                    turn = Skip(currentDiscard);
-                }
-            }
+            turn = Play(currentHand, currentDiscard);
+
+            //if (currentDiscard == null)
+            //{
+            //    turn = Play(currentHand, currentDiscard);
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Would you like to (1) Play or (2) Skip?");
+            //    int choice;
+            //    bool validChoice = int.TryParse(Console.ReadLine(), out choice);
+            //    while (!validChoice || (choice < 1 || choice > 2))
+            //    {
+            //        Console.WriteLine("Please enter a valid option.");
+            //        validChoice = int.TryParse(Console.ReadLine(), out choice);
+            //    }
+            //    turn.Result = choice == 1 ? TurnResult.Play : TurnResult.Skip;
+            //    if (turn.Result == TurnResult.Play && HasPlayableCard(currentHand, currentDiscard)) { turn = Play(currentHand, currentDiscard); }
+            //    else
+            //    {
+            //        if (!HasPlayableCard(currentHand, currentDiscard) && choice == 1)
+            //            Console.WriteLine("You don't have a playable card, you must skip.");
+            //        turn = Skip(currentDiscard);
+            //    }
+            //}
             
             HasPlayed = true;
 
@@ -126,54 +129,83 @@ namespace Presidents.Game_Pieces
                 }
             }
 
-            Console.WriteLine("Which option would you like to play? Please select the corresponding number from below.");
-            for (int p = 1; p <= playableOptions.Count; p++)
+            if (playableOptions.Count == 0)
             {
-                bool beginningOfRound = currentDiscard == null;
-                string cardCount = string.Empty;
-                if (!beginningOfRound)
-                {
-                    cardCount = playableOptions[p - 1].Count > currentDiscard.Count ? $"{currentDiscard.Count} of {playableOptions[p - 1].Count}" : $"{playableOptions[p - 1].Count}";
-                }
-                else
-                {
-                    cardCount = $"{playableOptions[p - 1].Count}";
-                }
-                Console.WriteLine($"{p}. {cardCount} - {playableOptions[p - 1][0].Value}");
+                Console.WriteLine("\nYou don't have a playable card, you must skip. (Press Enter to continue)");
+                Console.ReadKey();
+                turn = Skip(currentDiscard);
             }
-
-            int choice;
-            bool validChoice = int.TryParse(Console.ReadLine(), out choice);
-            while (!validChoice || (choice < 1 || choice > playableOptions.Count))
+            else
             {
-                Console.WriteLine("Please enter a valid option.");
-                validChoice = int.TryParse(Console.ReadLine(), out choice);
-            }
-
-            var numOfCards = currentDiscard != null ? currentDiscard.Count : playableOptions[choice - 1].Count;
-            int cardLoc = 0;
-            foreach (var cardList in Hand)
-            {
-                if (cardList[0].Value == playableOptions[choice - 1][0].Value)
+                Console.WriteLine("\nWhich option would you like to play? Please select the corresponding number from below, or press \"s\" to skip");
+                for (int p = 1; p <= playableOptions.Count; p++)
                 {
-                    break;
+                    bool beginningOfRound = currentDiscard == null;
+                    string cardCount = string.Empty;
+                    string plural = playableOptions[p - 1].Count > 1 ? playableOptions[p - 1][0].Value == CardValue.Six ? "es" : "s" : string.Empty;
+                    if (!beginningOfRound)
+                    {
+                        cardCount = playableOptions[p - 1].Count > currentDiscard.Count ? $"{currentDiscard.Count} of {playableOptions[p - 1].Count}" : $"{playableOptions[p - 1].Count}";
+                    }
+                    else
+                    {
+                        cardCount = $"{playableOptions[p - 1].Count}";
+                    }
+                    Console.WriteLine($"{p}. {cardCount} - {playableOptions[p - 1][0].Value}{plural}");
                 }
-                cardLoc++;
-            }
-            numOfCards = Hand[cardLoc][0].Value == CardValue.Joker ? 1 : numOfCards;
 
-            for (int c = 0; c < numOfCards; c++)
-            {
-                DealtCards.Remove(Hand[cardLoc][0]);
+                
+                string playChoice = Console.ReadLine();
+                int choice;
+                bool validChoice = int.TryParse(playChoice, out choice) || playChoice == "s" || playChoice == "S";
+                choice = playChoice == "s" || playChoice == "S" ? 1 : choice;
+                while (!validChoice || (choice < 1 || choice > playableOptions.Count))
+                {
+                    Console.WriteLine("Please enter a valid option.");
+                    playChoice = Console.ReadLine();
+                    validChoice = int.TryParse(playChoice, out choice) || playChoice == "s" || playChoice == "S";
+                    if (validChoice)
+                    {
+                        Console.WriteLine("\nYou chose to skip. (Press Enter to continue)");
+                        Console.ReadKey();
+                        turn = Skip(currentDiscard);
+                        break;
+                    }
+                };
+
+                if (playChoice == "s" || playChoice == "S" && turn.Result != TurnResult.Skip)
+                {
+                    Console.WriteLine("\nYou chose to skip. (Press Enter to continue)");
+                    Console.ReadKey();
+                    turn = Skip(currentDiscard);
+                } 
+
+                if (turn.Result != TurnResult.Skip)
+                {
+                    var numOfCards = currentDiscard != null ? currentDiscard.Count : playableOptions[choice - 1].Count;
+                    int cardLoc = 0;
+                    foreach (var cardList in Hand)
+                    {
+                        if (cardList[0].Value == playableOptions[choice - 1][0].Value)
+                        {
+                            break;
+                        }
+                        cardLoc++;
+                    }
+                    numOfCards = Hand[cardLoc][0].Value == CardValue.Joker ? 1 : numOfCards;
+
+                    for (int c = 0; c < numOfCards; c++)
+                    {
+                        DealtCards.Remove(Hand[cardLoc][0]);
+                    }
+
+                    turn.Card = playableOptions[choice - 1].GetRange(0, numOfCards);
+
+                    
+                }
             }
             
-
-            //var handLoc = Hand.Where(c => c.First().Value == playableOptions[choice - 1][0].Value).First();
-            //Hand.Remove(handLoc);
-            turn.Card = playableOptions[choice - 1].GetRange(0, numOfCards);
-
             Console.Clear();
-
             return turn;
         }
 
@@ -182,8 +214,7 @@ namespace Presidents.Game_Pieces
             PlayerTurn turn = new PlayerTurn();
             turn.Card = previousDiscard;
             turn.Result = TurnResult.Skip;
-            Console.Clear();
-            Console.WriteLine("You chose to skip, next persons turn.");
+            //Console.Clear();
 
             return turn;
         }

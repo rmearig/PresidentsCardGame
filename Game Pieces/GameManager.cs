@@ -89,11 +89,12 @@ namespace Presidents.Game_Pieces
                 
                 while (Players.Any(p => p.FuturePosition == 0))
                 {
-                    if (!string.IsNullOrEmpty(played))
-                    {
-                        Console.WriteLine($"This round's plays:\n{played}");
-                        Console.WriteLine($"There are {Players.Where(p => p.HasPlayed == false).ToList().Count-1} players left after you.\n");
-                    }
+                    //if (!string.IsNullOrEmpty(played))
+                    //{
+                    //    Console.WriteLine($"This round's plays:\n{played}");
+                    //    //add the string for 1 player
+                    //    Console.WriteLine($"There are {Players.Where(p => p.HasPlayed == false).ToList().Count-1} players left after you.\n");
+                    //}
                     i = i > Players.Count ? 1 : i;
                     var currentPlayer = Players[i - 1];
                     if (currentPlayer.FuturePosition == 0 && currentPlayer.DealtCards.Count == 0)
@@ -104,18 +105,30 @@ namespace Presidents.Game_Pieces
 
                     if (currentPlayer.FuturePosition == 0)
                     {
+                        if (!string.IsNullOrEmpty(played))
+                        {
+                            Console.WriteLine($"This round's plays:\n{played}");
+                            //add the string for 1 player
+                            int numOfPlayersLeft = Players.Where(p => p.HasPlayed == false && p.FuturePosition == 0).ToList().Count - 1;
+                            string playersString = numOfPlayersLeft == 1 ? "is 1 player" : $"are {numOfPlayersLeft} players";
+                            Console.WriteLine($"There {playersString} left after you.\n");
+                        }
                         Console.WriteLine($"Alright, {currentPlayer.Name}, your turn!");
                         var previousCard = currentTurn.Card;
                         currentTurn = currentPlayer.Turn(currentPlayer.Hand, currentTurn.Card);
 
-                        if (currentTurn.Card[0].Value == CardValue.Joker)
+                        if (currentTurn.Card != null)
                         {
-                            w = i;
-                            foreach (var player in Players)
+                            if (currentTurn.Card[0].Value == CardValue.Joker)
                             {
-                                player.HasPlayed = true;
+                                w = i;
+                                foreach (var player in Players)
+                                {
+                                    player.HasPlayed = true;
+                                }
                             }
                         }
+                        
 
                         if (previousCard != currentTurn.Card)
                             w = i;
@@ -132,11 +145,20 @@ namespace Presidents.Game_Pieces
                     }
 
                     string currentPlay = string.Empty;
-                    if (currentTurn.Result == TurnResult.Skip)
+                    string plural = currentTurn.Card != null ? currentTurn.Card.Count > 1 ? currentTurn.Card[0].Value == CardValue.Six ? "es" : "s" : string.Empty : string.Empty;
+                    if (currentTurn.Result == TurnResult.Skip && currentPlayer.FuturePosition == 0)
                     {
                         currentPlay = "has skipped.";
                     }
-                    else currentPlay = $"played {currentTurn.Card.Count} - {currentTurn.Card[0].Value}";
+                    else if (currentPlayer.FuturePosition != 0)
+                    {
+                        currentPlay = "is out of cards.";
+                    }
+                    else if (currentTurn.Card == null)
+                    {
+
+                    }
+                    else currentPlay = $"played {currentTurn.Card.Count} - {currentTurn.Card[0].Value}{plural}";
                     played += $"{currentPlayer.Name} {currentPlay}\n";
 
 

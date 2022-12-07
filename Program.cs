@@ -8,6 +8,15 @@ namespace Presidents
     {
         static void Main(string[] args)
         {
+            Console.WriteLine(  "* * * * * * * ============= \n" +
+                                " * * * * * *  ============= \n" +
+                                "* * * * * * * ============= \n" +
+                                " * * * * * *  ============= \n" +
+                                "=========================== \n" +
+                                "=========================== \n" +
+                                "===========================\n");
+
+
             Console.WriteLine("Ready to play Presidents? Press enter to begin.");
             Console.ReadKey();
 
